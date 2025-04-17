@@ -1,26 +1,10 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
-// Check if environment variables are defined
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Validate environment variables
-if (!supabaseUrl || !supabaseKey) {
-  console.error(
-    "Supabase environment variables are missing. Make sure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your .env file."
-  );
-  // We need to provide fallback values to prevent the app from crashing
-  // This client won't work, but at least the app will render and show an error message
-}
-
-// Create Supabase client
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder-url.supabase.co',
-  supabaseKey || 'placeholder-key'
-);
+// Export the pre-configured client from the integrations folder
+export const supabase = supabaseClient;
 
 // Helper function to check if Supabase connection is properly configured
 export const isSupabaseConfigured = () => {
-  return !!supabaseUrl && !!supabaseKey;
+  return true; // Since we're using the auto-generated client, it's always configured
 };
