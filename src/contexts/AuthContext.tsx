@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
+import { toast } from '@/components/ui/use-toast';
 
 type UserRole = 'patient' | 'admin' | null;
 
@@ -10,6 +11,7 @@ type AuthContextType = {
   session: Session | null;
   isLoading: boolean;
   userRole: UserRole;
+  configError: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string, role: UserRole) => Promise<{ error: any | null }>;
   signOut: () => Promise<void>;
@@ -22,81 +24,123 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<UserRole>(null);
+  const [configError, setConfigError] = useState(!isSupabaseConfigured());
 
   useEffect(() => {
-    const setData = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error(error);
-        setIsLoading(false);
-        return;
-      }
-
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        // Get user's role from user_roles table
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
-
-        setUserRole(roleData?.role as UserRole || 'patient');
-      }
-
+    if (!isSupabaseConfigured()) {
+      setConfigError(true);
       setIsLoading(false);
+      toast({
+        title: "Configuration Error",
+        description: "Supabase connection is not properly configured. Please check your environment variables.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const setData = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error(error);
+          setIsLoading(false);
+          return;
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          // Get user's role from user_roles table
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+
+          setUserRole(roleData?.role as UserRole || 'patient');
+        }
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error setting up auth:", err);
+        setIsLoading(false);
+      }
     };
 
     setData();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
+    try {
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
 
-      if (newSession?.user) {
-        // Get user's role from user_roles table
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', newSession.user.id)
-          .single();
+        if (newSession?.user) {
+          // Get user's role from user_roles table
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', newSession.user.id)
+            .single();
 
-        setUserRole(roleData?.role as UserRole || 'patient');
-      } else {
-        setUserRole(null);
-      }
+          setUserRole(roleData?.role as UserRole || 'patient');
+        } else {
+          setUserRole(null);
+        }
 
+        setIsLoading(false);
+      });
+
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    } catch (err) {
+      console.error("Error setting up auth listener:", err);
       setIsLoading(false);
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    }
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    if (!isSupabaseConfigured()) {
+      return { error: new Error("Supabase is not properly configured") };
+    }
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error };
+    } catch (error) {
+      console.error("Sign in error:", error);
+      return { error };
+    }
   };
 
   const signUp = async (email: string, password: string, role: UserRole = 'patient') => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    
-    if (!error && data.user) {
-      // Insert user role into user_roles table
-      await supabase.from('user_roles').insert({
-        user_id: data.user.id,
-        role: role
-      });
+    if (!isSupabaseConfigured()) {
+      return { error: new Error("Supabase is not properly configured") };
     }
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      
+      if (!error && data.user) {
+        // Insert user role into user_roles table
+        await supabase.from('user_roles').insert({
+          user_id: data.user.id,
+          role: role
+        });
+      }
 
-    return { error };
+      return { error };
+    } catch (error) {
+      console.error("Sign up error:", error);
+      return { error };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (isSupabaseConfigured()) {
+      await supabase.auth.signOut();
+    }
     setUserRole(null);
   };
 
@@ -105,6 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     isLoading,
     userRole,
+    configError,
     signIn,
     signUp,
     signOut
