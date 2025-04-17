@@ -21,7 +21,8 @@ import {
   FileText, 
   Newspaper, 
   Info, 
-  Plus 
+  Plus,
+  LogIn 
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -86,24 +87,24 @@ export function Sidebar() {
                   </div>
                 </div>
                 <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                  variant="destructive" 
+                  className="w-full justify-start mt-2"
                   onClick={handleSignOut}
                 >
                   <LogOut className="h-5 w-5" />
-                  <span className="ml-2">Sign Out</span>
+                  <span className="ml-2">Logout</span>
                 </Button>
               </>
             ) : (
               <Button 
-                variant="ghost" 
+                variant="default" 
                 className="w-full justify-start"
                 asChild
                 onClick={() => setOpen(false)}
               >
                 <Link to="/login">
-                  <User className="h-5 w-5" />
-                  <span className="ml-2">Sign In</span>
+                  <LogIn className="h-5 w-5" />
+                  <span className="ml-2">Login / Register</span>
                 </Link>
               </Button>
             )}
