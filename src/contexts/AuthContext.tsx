@@ -4,6 +4,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from '@/components/ui/use-toast';
 
+// Define the user role type
 type UserRole = 'patient' | 'admin' | null;
 
 type AuthContextType = {
@@ -51,18 +52,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Get user's role from user_roles table
-          const { data: roleData, error: roleError } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .single();
+          try {
+            // Get user's role from user_roles table
+            const { data: roleData, error: roleError } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', session.user.id)
+              .single();
 
-          if (roleError) {
-            console.error("Error fetching user role:", roleError);
-            setUserRole('patient'); // Default role if not found
-          } else {
-            setUserRole(roleData?.role as UserRole || 'patient');
+            if (roleError) {
+              console.error("Error fetching user role:", roleError);
+              setUserRole('patient'); // Default role if not found
+            } else {
+              setUserRole(roleData?.role as UserRole || 'patient');
+            }
+          } catch (err) {
+            console.error("Error fetching role:", err);
+            setUserRole('patient'); // Default to patient role on error
           }
         }
 
@@ -81,18 +87,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(newSession?.user ?? null);
 
         if (newSession?.user) {
-          // Get user's role from user_roles table
-          const { data: roleData, error: roleError } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', newSession.user.id)
-            .single();
+          try {
+            // Get user's role from user_roles table
+            const { data: roleData, error: roleError } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', newSession.user.id)
+              .single();
 
-          if (roleError) {
-            console.error("Error fetching user role:", roleError);
-            setUserRole('patient'); // Default role if not found
-          } else {
-            setUserRole(roleData?.role as UserRole || 'patient');
+            if (roleError) {
+              console.error("Error fetching user role:", roleError);
+              setUserRole('patient'); // Default role if not found
+            } else {
+              setUserRole(roleData?.role as UserRole || 'patient');
+            }
+          } catch (err) {
+            console.error("Error fetching role:", err);
+            setUserRole('patient'); // Default to patient role on error
           }
         } else {
           setUserRole(null);
@@ -133,16 +144,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signUp({ email, password });
       
       if (!error && data.user) {
-        // Insert user role into user_roles table
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: data.user.id,
-            role: role || 'patient'
-          });
-          
-        if (roleError) {
-          console.error("Error setting user role:", roleError);
+        try {
+          // Insert user role into user_roles table
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: data.user.id,
+              role: role || 'patient'
+            });
+            
+          if (roleError) {
+            console.error("Error setting user role:", roleError);
+          }
+        } catch (err) {
+          console.error("Error setting user role:", err);
         }
       }
 
