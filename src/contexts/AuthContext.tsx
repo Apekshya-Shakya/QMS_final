@@ -52,13 +52,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (session?.user) {
           // Get user's role from user_roles table
-          const { data: roleData } = await supabase
+          const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', session.user.id)
             .single();
 
-          setUserRole(roleData?.role as UserRole || 'patient');
+          if (roleError) {
+            console.error("Error fetching user role:", roleError);
+            setUserRole('patient'); // Default role if not found
+          } else {
+            setUserRole(roleData?.role as UserRole || 'patient');
+          }
         }
 
         setIsLoading(false);
@@ -77,13 +82,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (newSession?.user) {
           // Get user's role from user_roles table
-          const { data: roleData } = await supabase
+          const { data: roleData, error: roleError } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', newSession.user.id)
             .single();
 
-          setUserRole(roleData?.role as UserRole || 'patient');
+          if (roleError) {
+            console.error("Error fetching user role:", roleError);
+            setUserRole('patient'); // Default role if not found
+          } else {
+            setUserRole(roleData?.role as UserRole || 'patient');
+          }
         } else {
           setUserRole(null);
         }
@@ -124,10 +134,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (!error && data.user) {
         // Insert user role into user_roles table
-        await supabase.from('user_roles').insert({
-          user_id: data.user.id,
-          role: role
-        });
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: data.user.id,
+            role: role || 'patient'
+          });
+          
+        if (roleError) {
+          console.error("Error setting user role:", roleError);
+        }
       }
 
       return { error };
