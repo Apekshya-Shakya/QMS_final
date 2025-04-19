@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { 
@@ -28,10 +28,12 @@ import {
 export function Sidebar() {
   const { user, signOut, userRole } = useAuth();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     setOpen(false);
+    navigate('/login');
   };
 
   const menuItems = [
