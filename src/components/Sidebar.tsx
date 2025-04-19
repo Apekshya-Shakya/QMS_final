@@ -71,16 +71,26 @@ export function Sidebar() {
                   key={item.name}
                   variant="ghost"
                   className="justify-start"
-                  asChild
+                  asChild={!item.onClick}
                   onClick={() => {
-                    if (item.onClick) item.onClick();
-                    setOpen(false);
+                    if (item.onClick) {
+                      item.onClick();
+                    } else {
+                      setOpen(false);
+                    }
                   }}
                 >
-                  <Link to={item.path}>
-                    {item.icon}
-                    <span className="ml-2">{item.name}</span>
-                  </Link>
+                  {!item.onClick ? (
+                    <Link to={item.path}>
+                      {item.icon}
+                      <span className="ml-2">{item.name}</span>
+                    </Link>
+                  ) : (
+                    <div className="flex items-center">
+                      {item.icon}
+                      <span className="ml-2">{item.name}</span>
+                    </div>
+                  )}
                 </Button>
               ))}
             </nav>
@@ -101,4 +111,3 @@ export function Sidebar() {
     </Sheet>
   );
 }
-
