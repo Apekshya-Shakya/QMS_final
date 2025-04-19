@@ -43,7 +43,8 @@ export function Sidebar() {
     { name: 'Book Appointment', icon: <Calendar className="h-5 w-5" />, path: '/appointments' },
     { name: 'Blog', icon: <FileText className="h-5 w-5" />, path: '/blog' },
     { name: 'News & Events', icon: <Newspaper className="h-5 w-5" />, path: '/news' },
-  ];
+    user ? null : { name: 'Login / Register', icon: <LogIn className="h-5 w-5" />, path: '/login' }
+  ].filter(Boolean);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -95,23 +96,10 @@ export function Sidebar() {
                   <span className="ml-2">Logout</span>
                 </Button>
               </>
-            ) : (
-              <Button 
-                variant="default" 
-                className="w-full justify-start"
-                asChild
-                onClick={() => setOpen(false)}
-              >
-                <Link to="/login">
-                  <LogIn className="h-5 w-5" />
-                  <span className="ml-2">Login / Register</span>
-                </Link>
-              </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </SheetContent>
     </Sheet>
   );
 }
-
