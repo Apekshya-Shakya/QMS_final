@@ -43,7 +43,7 @@ export function Sidebar() {
     { name: 'Book Appointment', icon: <Calendar className="h-5 w-5" />, path: '/appointments' },
     { name: 'Blog', icon: <FileText className="h-5 w-5" />, path: '/blog' },
     { name: 'News & Events', icon: <Newspaper className="h-5 w-5" />, path: '/news' },
-    user ? null : { name: 'Login / Register', icon: <LogIn className="h-5 w-5" />, path: '/login' }
+    user ? null : { name: 'Login / Register', icon: <LogIn className="h-5 w-5" />, path: '/login' },
   ].filter(Boolean);
 
   return (
@@ -78,25 +78,25 @@ export function Sidebar() {
             </nav>
           </div>
           
-          <div className="mt-auto border-t pt-4">
-            {user ? (
-              <>
-                <div className="flex items-center mb-2 px-3 py-2">
-                  <User className="h-5 w-5 text-gray-500" />
-                  <div className="ml-2 text-sm font-medium truncate">
-                    {user.email} ({userRole})
-                  </div>
+          <div className="border-t pt-4">
+            {user && (
+              <div className="flex items-center mb-2 px-3 py-2">
+                <User className="h-5 w-5 text-gray-500" />
+                <div className="ml-2 text-sm font-medium truncate">
+                  {user.email} ({userRole})
                 </div>
-                <Button 
-                  variant="destructive" 
-                  className="w-full justify-start mt-2"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span className="ml-2">Logout</span>
-                </Button>
-              </>
-            ) : null}
+              </div>
+            )}
+            {user && (
+              <Button 
+                variant="destructive" 
+                className="w-full justify-start"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="ml-2">Logout</span>
+              </Button>
+            )}
           </div>
         </div>
       </SheetContent>
