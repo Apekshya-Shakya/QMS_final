@@ -22,12 +22,12 @@ export function Navigation() {
           
           {user ? (
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" asChild>
+              {/* <Button variant="ghost" asChild>
                 <Link to="/request-token">
                   <Plus className="h-4 w-4 mr-2" />
                   Get Token
                 </Link>
-              </Button>
+              </Button> */}
               <Button variant="ghost" asChild>
                 <Link to="/queue-status">
                   <Clock className="h-4 w-4 mr-2" />

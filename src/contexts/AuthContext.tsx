@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   User, 
@@ -7,7 +6,8 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase'; // Ensure `db` is your Firestore instance
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { toast } from '@/components/ui/use-toast';
 
 // Define the user role type
@@ -24,27 +24,32 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Simple in-memory storage for user roles
-// In a real app, you might want to use Firestore for this
-const userRoles = new Map<string, UserRole>();
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<UserRole>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      
+
       if (currentUser) {
-        // Get role from our in-memory map
-        const role = userRoles.get(currentUser.uid) || 'patient';
-        setUserRole(role);
+        try {
+          // Fetch the user role from Firestore
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            setUserRole(userDoc.data().role);
+          } else {
+            setUserRole('patient'); // Default role
+          }
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          setUserRole('patient');
+        }
       } else {
         setUserRole(null);
       }
-      
+
       setIsLoading(false);
     });
 
@@ -54,9 +59,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Default to patient role if not found
-      const role = userRoles.get(userCredential.user.uid) || 'patient';
+
+      // Fetch role from Firestore after successful sign-in
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      const role = userDoc.exists() ? userDoc.data().role : 'patient'; // Default role if not found
       setUserRole(role);
+
       return { error: null };
     } catch (error) {
       console.error("Sign in error:", error);
@@ -67,8 +75,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, role: UserRole = 'patient') => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Store role in our in-memory map
-      userRoles.set(userCredential.user.uid, role || 'patient');
+      const userId = userCredential.user.uid;
+
+      // Save role to Firestore
+      await setDoc(doc(db, 'users', userId), {
+        email,
+        role,
+      });
+
       setUserRole(role);
       return { error: null };
     } catch (error) {

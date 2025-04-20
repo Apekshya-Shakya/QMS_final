@@ -42,9 +42,9 @@ const Contact = () => {
                 <div>
                   <h3 className="font-medium">Address</h3>
                   <p className="text-gray-600">
-                    123 Hospital Street<br />
-                    Medical District<br />
-                    Healthville, HV 12345
+                    Godawari Road, Harisiddhi<br />
+                    44700, Lalitpur<br />
+                    Nepal Cancer Hospital and Research Center
                   </p>
                 </div>
               </div>
@@ -54,8 +54,8 @@ const Contact = () => {
                 <div>
                   <h3 className="font-medium">Phone</h3>
                   <p className="text-gray-600">
-                    Main: (123) 456-7890<br />
-                    Emergency: (123) 456-7999
+                    Main: (01) 456-7890<br />
+                    Emergency: (01) 456-7999
                   </p>
                 </div>
               </div>
