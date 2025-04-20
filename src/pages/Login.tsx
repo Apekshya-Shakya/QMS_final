@@ -8,11 +8,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { Navigation } from '@/components/Navigation';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
 
 const Login = () => {
-  const { signIn, signUp, configError } = useAuth();
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -54,10 +52,11 @@ const Login = () => {
       
       toast({
         title: "Account created!",
-        description: "Please check your email to verify your account.",
+        description: "Your account has been created successfully.",
       });
       
-      // Stay on login page after sign up to allow login
+      // Navigate to home after successful signup
+      navigate('/');
     } catch (error: any) {
       toast({
         title: "Error",
@@ -73,17 +72,6 @@ const Login = () => {
     <>
       <Navigation />
       <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[80vh]">
-        {configError && (
-          <Alert variant="destructive" className="mb-6 max-w-md">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Configuration Error</AlertTitle>
-            <AlertDescription>
-              Supabase connection is not properly configured. 
-              Please add your Supabase URL and anon key to your environment variables.
-            </AlertDescription>
-          </Alert>
-        )}
-        
         <Card className="w-full max-w-md">
           <Tabs defaultValue="login">
             <CardHeader>
@@ -105,7 +93,6 @@ const Login = () => {
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
                       required 
-                      disabled={configError}
                     />
                   </div>
                   <div className="space-y-2">
@@ -115,13 +102,12 @@ const Login = () => {
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
                       required 
-                      disabled={configError}
                     />
                   </div>
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isLoading || configError}
+                    disabled={isLoading}
                   >
                     {isLoading ? "Loading..." : "Sign In"}
                   </Button>
@@ -137,7 +123,6 @@ const Login = () => {
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
                       required 
-                      disabled={configError}
                     />
                   </div>
                   <div className="space-y-2">
@@ -147,21 +132,20 @@ const Login = () => {
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
                       required 
-                      disabled={configError}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <Button 
                       onClick={(e) => handleSignUp(e, 'patient')} 
                       className="w-full" 
-                      disabled={isLoading || configError}
+                      disabled={isLoading}
                     >
                       Register as Patient
                     </Button>
                     <Button 
                       onClick={(e) => handleSignUp(e, 'admin')} 
                       className="w-full"
-                      disabled={isLoading || configError}
+                      disabled={isLoading}
                     >
                       Register as Admin
                     </Button>
